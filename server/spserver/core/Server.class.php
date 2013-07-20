@@ -11,14 +11,13 @@
 
 namespace spserver\core;
 
-require_once dirname(__FILE__) . '/../events/EventDispatcher.class.php';
-require_once dirname(__FILE__) . '/../events/Event.class.php';
-require_once dirname(__FILE__) . '/../util/Timer.class.php';
-require_once dirname(__FILE__) . '/../util/Error.class.php';
-require_once dirname(__FILE__) . '/../util/Strings.class.php';
-require_once dirname(__FILE__) . '/Socket.class.php';
-require_once dirname(__FILE__) . '/Client.class.php';
-require_once dirname(__FILE__) . '/Group.class.php';
+require_once '/../events/EventDispatcher.class.php';
+require_once '/../events/Event.class.php';
+require_once '/../util/Timer.class.php';
+require_once '/../util/Strings.class.php';
+require_once 'Socket.class.php';
+require_once 'Client.class.php';
+require_once 'Group.class.php';
 
 use spserver\events\EventDispatcher;
 use spserver\events\Event;

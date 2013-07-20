@@ -11,8 +11,8 @@
 
 namespace spserver\util;
 
-require_once dirname(__FILE__) . '/../events/EventDispatcher.class.php';
-require_once dirname(__FILE__) . '/../events/Event.class.php';
+require_once '/../events/EventDispatcher.class.php';
+require_once '/../events/Event.class.php';
 
 use spserver\events\EventDispatcher;
 use spserver\events\Event;

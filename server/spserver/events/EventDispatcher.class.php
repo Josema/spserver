@@ -51,14 +51,13 @@
  
 namespace spserver\events;
 
-require_once dirname(__FILE__) . '/IEventDispatcher.class.php';
-require_once dirname(__FILE__) . '/Event.class.php';
+require_once 'IEventDispatcher.class.php';
+require_once 'Event.class.php';
 
 use spserver\events\IEventDispatcher;
 use spserver\events\Event;
-use spserver\util\Encapsulation;
  
-class EventDispatcher extends Encapsulation implements IEventDispatcher {
+class EventDispatcher implements IEventDispatcher {
 	/**
 	 * The target object for events dispatched to the EventDispatcher object.
 	 * This parameter is used when the EventDispatcher instance is aggregated by a class that implements Dispatcher; 
