@@ -11,9 +11,12 @@
 
 namespace spserver\core;
 
-use Exception;
-use spserver\util\Error;
+require_once dirname(__FILE__) . '/../util/Encapsulation.class.php';
+require_once dirname(__FILE__) . '/../util/Error.class.php';
+
 use spserver\util\Encapsulation;
+use spserver\util\Error;
+use Exception;
 
 
 class Socket extends Encapsulation

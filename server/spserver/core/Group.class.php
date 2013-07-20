@@ -10,9 +10,14 @@
 
 
 namespace spserver\core;
+
+require_once dirname(__FILE__) . '/../util/Encapsulation.class.php';
+require_once dirname(__FILE__) . '/../util/Error.class.php';
+require_once dirname(__FILE__) . '/Server.class.php';
+
+use spserver\util\Encapsulation;
 use spserver\util\Error;
 use spserver\core\Server;
-use spserver\util\Encapsulation;
 
 
 class Group extends Encapsulation

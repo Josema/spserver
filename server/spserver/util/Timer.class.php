@@ -76,32 +76,17 @@ class Timer extends EventDispatcher
 	 */
 	public function __construct($delay, $repeatTotal=0)
 	{
+		//Encapsulation
+		$this->addGet('id');
+		$this->addSet('id');
+		$this->addGet('running');
+
+		
 		$this->delay = $delay;
 		$this->repeatTotal = $repeatTotal;
 		$this->started = $this->militime();
 	}
 
-	
-	/**
-	 * Id socket client
-	 * @return int
-	 */
-	public function id()
-	{
-		return $this->id;
-	}
-
-
-	/**
-	 * Set a id of this Timer
-	 * 
-	 * @param int $id
-	 * @return void
-	 */
-	public function setId($id)
-	{
-	   $this->id = $id;
-	}
 	
 	
 	/**
@@ -142,15 +127,6 @@ class Timer extends EventDispatcher
 		$this->running = false;
 	}
 
-
-	/**
-	 * If timer is running
-	 * @return bool
-	 */
-	public function running()
-	{
-		return $this->running;
-	}
 
 	/**
 	 * Get timestamp in miliseconds

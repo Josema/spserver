@@ -2,7 +2,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////
 //
-//	Class for wrap and unwrap message transfers. Only work with AES CBC mode encryption
+//	Class for wrap and unwrap message transfers. Only work with AES CBC mode encryption (why i wrote this?)
 //
 //	2012/I/24
 //
@@ -10,8 +10,6 @@
 
 
 namespace spserver\util;
-
-use spserver\util\AES;
 
 
 class Message
@@ -42,8 +40,7 @@ class Message
 		$_base64 = ($base64) ? 1 : 0;
 		$_encryption = ($aes == NULL) ? 0 : 1;
 		$_json = (gettype($message) == 'object' || gettype($message) == 'array') ? 1 : 0;
-		
-		
+
 
 		//Converting to JSON
 		if ($_json)

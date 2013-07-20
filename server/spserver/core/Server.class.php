@@ -2,7 +2,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////
 //
-//	Basic communications class father sockets
+//	Basic communications class for manager sockets
 //
 //	2011/VII/22
 //
@@ -449,7 +449,7 @@ class Server extends EventDispatcher
 	{
 		$id = $this->incTimers;
 		$this->timers[$id] = $timer;
-		$this->timers[$id]->setId($id);
+		$this->timers[$id]->id = $id;
 		$this->incTimers += 1;
 
 		return $id;
