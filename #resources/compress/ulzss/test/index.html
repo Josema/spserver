@@ -1,0 +1,45 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/> 
+<title>u-LZSS test</title>
+</head>
+<body>
+<pre id = "log"></pre>
+<script src="../lib/ulzss.js"></script>
+<script src="test.js"></script>
+<script>
+function convers()
+{
+	var str = document.getElementById("in").value;
+	var encode = ULZSS.encode(str);
+	document.getElementById("out").value = encode;
+	document.getElementById("porcent").innerHTML = "[" + encode.length + " " + Math.round((encode.length*100)/str.length) + "%]";
+	convers2(document.getElementById("out").value)
+}
+function convers2(str)
+{
+	document.getElementById("reconverrt").value = ULZSS.decode(str);
+}
+
+
+
+check_convert("josema");
+check_convert('{"menu": 25, "saf": {a: "caca", "vaca", "sasa"ASD SDF}');
+check_convert("347 363 363 369 367 344 384 423 433 356 344 361 367 370 360 364 322 391 418 409 420 409 344 420 413 344 412 413 422 344 429 422 409 344 424 409 420 417 434 409 344 409 420 344 427 409 420 417 426 344 409 420 344 391 379 381 388 391 396 381 358 322 322 347 363 363 369 365 344 384 423 433 356 344 361 367 370 360 364 322 427 413 344 424 409 426 428 413 344 413 420 344 426 429 427 423 358 322 322 347 363 363 368 366 344 384 423 433 356 344 361 367 370 360 363 322 388 423 427 344 426 429 427 423 427 344 422 423 344 413 422 428 426 409 422 344 413 422 344 413 420 344 411 409 421 424 423 344 412 413 344 430 417 427 417 555 422 344 412 413 344 423 411 413 356 344 422 423 344 425 429 417 413 426 413 344 427 423 420 423 344 421 417 426 409 344 424 423 426 344 413 420 344 426 409 410 417 420 420 423 344 432 380 322 322 395 409 433 387 322");
+check_convert('http://googleads.g.doubleclick.net/pagead/ads?client=ca-pub-0921669117557162&output=html&h=15&slotname=1688883476&w=468&lmt=1327161926&flash=11.1.102&url=http%3A%2F%2Fwww.crypo.com%2Ftools%2Feng_zara128p.php&dt=1327161927085&bpp=5&shv=r20120111&jsv=r20110914&correlator=1327161927171&frm=20&adk=3657817365&ga_vid=980517488.1325495210&ga_sid=1327161927&ga_hid=446190391&ga_fc=1&u_tz=60&u_his=2&u_java=1&u_h=1200&u_w=1920&u_ah=1160&u_aw=1920&u_cd=24&u_nplug=9&u_nmime=50&dff=arial&dfs=16&adx=507&ady=183&biw=1903&bih=1018&fu=0&ifi=1&dtd=210&xpc=erNJK7ynXq&p=http%3A//www.crypo.com&rl_rc=true&adsense_enabled=true&ad_type=text&ui=rc:0&oe=utf8&height=15&width=468&format=fp_al_lp&fs=medium&f=arial&kw_type=radlink&prev_fmts=468x15_0ads_al&rt=ChBPGuJQAAJbKgp8ERDIZybaEgg3IFN0cmluZxoIZ8h8c11vQ1QoAVITCP-Dhb6_4a0CFUwQfAodCkinbg&hl=en&kw0=Zara&kw1=JavaScript&kw2=String+Length&kw3=7+String&okw=7+String')
+
+
+
+
+
+
+
+
+
+</script>
+<textarea cols="200" rows="10" id="in" onKeyUp="convers()"></textarea><br>
+<textarea cols="200" rows="10" id="out" onKeyUp="convers2(this.value)"></textarea><br>
+<div id="porcent"></div>
+<textarea cols="200" rows="10" id="reconverrt"></textarea>
+</body>
+</html>

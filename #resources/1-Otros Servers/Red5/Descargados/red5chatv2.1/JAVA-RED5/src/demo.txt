@@ -1,0 +1,382 @@
+package chat;
+import org.red5.server.adapter.ApplicationAdapter;
+import org.red5.server.api.IConnection;
+import org.red5.server.api.IClient;
+import org.red5.server.api.IScope;
+import org.red5.server.api.Red5;
+import org.red5.server.api.service.IServiceCapableConnection;
+import org.red5.server.api.so.ISharedObject;
+import org.red5.server.api.ScopeUtils;
+import org.red5.server.api.so.ISharedObjectService;
+import org.red5.server.api.*;
+import org.red5.server.api.scheduling.*;
+import org.red5.samples.components.ClientManager;
+import org.red5.server.api.service.ServiceUtils;
+import org.red5.server.api.service.*;
+import org.red5.server.api.service.IPendingServiceCallback;
+
+//
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import java.util.*;
+//
+//
+
+public class Application extends ApplicationAdapter{	
+	public Map<String, CClient> clients = new HashMap<String, CClient>();	
+	public class CClient{
+		String id = null;
+		String pseudo = null;
+		String role = null;
+		String sexe = null;
+		String status = null;
+		String room=null;
+		String world=null;
+
+		public String getRole(){
+		return role;
+		}
+		public String getName(){
+		return pseudo;
+		}
+		public String getId(){
+		return id;
+		}
+		public String getSexe(){
+			return sexe;
+			}
+		public String getStatus(){
+			return status;
+			}	
+		public String getRoom(){
+			return room;
+			}		
+		public String getWorld(){
+			return world;
+			}			
+		public void setRole(String _role){
+		role = _role;
+		}
+		public void setPseudo(String _pseudo){
+		pseudo = _pseudo;
+		}
+		public void setSexe(String _sexe){
+		sexe = _sexe;
+		}
+		public void setId(String _id){
+			id = _id;
+			}
+		public void setStatus(String _status){
+			status = _status;
+			}
+		public void setRoom(String _room){
+			room = _room;
+			}	
+		public void setWorld(String _world){
+			world = _world;
+			}		
+		}
+	
+	// ici le callback ! ! !
+	/*if (conn instanceof IServiceCapableConnection) {
+	    IServiceCapableConnection sc = (IServiceCapableConnection) conn;
+	    sc.invoke("the_method", new Object[]{"One", 1}, new MyCallback());
+	}
+	sc.invoke("echo", new Object[]{"Hello world!"},
+			 new IPendingServiceCallback() {
+			 	public void resultReceived(IPendingServiceCall call) {
+			 	System.err.println("Received: " + call.getResult());
+			 	}
+			  });
+	*/
+
+	
+	class MyCallback implements IPendingServiceCallback {
+	    public void resultReceived(IPendingServiceCall call) { 
+	        // Do something with "call.getResult()"
+	    }
+	}
+	//private ClientManager2 clientMgr = new ClientManager2("users_so","online",true);
+	private ClientManager clientMgr = new ClientManager("users_so",true);	
+	//List listeUsers = new ArrayList();
+	private static final Log log = LogFactory.getLog( Application.class );
+
+	//ISharedObject users_so;
+	//= getSharedObject(scope);
+
+	ArrayList listeUsers = new ArrayList();
+	ArrayList listeObjectUsers = new ArrayList();	
+	
+	/** Manager for the clients. */
+
+	public void disconnectUser(String connectionID)
+      {   //code to inform other clients that this client with this connection ID has left below...
+      }
+	public boolean connect(IConnection conn, IScope scope, Object[] params) {
+		log.info("connect IConnection nombre params="+ params.length);
+		// Check if the user passed valid parameters.
+		//params = 	 pseudo status role sexe  room world
+		if (params == null || params.length != 6) {
+			log.info("Client must pass 6 params !");
+			rejectClient("Client must pass 6 params !.");
+			return false;
+		}
+		String id = conn.getClient().getId();
+		String username = params[0].toString();
+		String status = params[1].toString();
+		String role=params[2].toString();
+		String sexe = params[3].toString();
+		String room = params[4].toString();
+		String world=params[5].toString();
+		
+		// test if username is almrady used
+		  if (listeUsers.contains(username)) {
+				if (conn instanceof IServiceCapableConnection) {
+				    IServiceCapableConnection sc = (IServiceCapableConnection) conn;
+				    log.info("error called");
+				    //sc.invoke("already_used", new Object[]{"already in use", 1});
+				}				
+
+			  log.info("username:"+username+" already used.");			  
+			  rejectClient("Error: username "+username+" already used.");
+			  // envoyer l'info au client !
+			}
+		// Call original method of parent class.
+		if (!super.connect(conn, scope, params)) {
+			return false;
+		}		
+        		
+		log.info("connected as :"+username+" status="+status+"role="+role+"sexe="+sexe+"room="+room+"world="+world);
+	  	listeUsers.add(username);	
+		listeObjectUsers.add(new Object[] {id,username,status,role,sexe,room,world});
+		clientMgr.addClient(scope, username, id);
+		ServiceUtils.invokeOnAllConnections (scope, "joinuser", new Object[] {id,username,status,role,sexe,room,world} );
+		return true;
+	}
+	public void disconnect(IConnection conn, IScope scope) {
+
+		log.info("disconnect IConnection");
+        
+		// Get the previously stored username.
+		String id = conn.getClient().getId();			
+
+		// Unregister user.
+		String username = clientMgr.removeClient(scope, id);
+		log.info("removeuser invoked id:"+id+" username="+username);
+		ServiceUtils.invokeOnAllConnections (scope, "removeuser", new Object[] {id,username} );
+
+        //ServiceUtils.invokeOnAllConnections (scope, "removeuser", new Object[] { username } );
+		
+		if (username==null) {
+			listeUsers.clear();
+			listeObjectUsers.clear();
+		}
+		else {
+			log.info("removeuser id="+id);
+			listeUsers.remove(username);
+			listeObjectUsers.remove(id);
+			log.info("listeObjectUsers removed:"+id);
+		}
+		// ISharedObject so = getSharedObject(scope, "users_so");
+		// so.endUpdate();	
+        //IScope appScope = Red5.getConnectionLocal().getScope();
+		
+		log.info("Client \"" + username + "\" (" + id + ") disconnected.");
+		// Call original method of parent class.
+		super.disconnect(conn, scope);
+		
+	}	
+	public boolean appJoin(IClient client, IScope scope) {
+		log.info("Client joined app " + client.getId());
+		// If you need the connecion object you can access it via.
+		IConnection conn = Red5.getConnectionLocal();
+		return true;
+	}
+	public void send_to_all_iterate() {
+		IConnection current = Red5.getConnectionLocal();
+		Iterator<IConnection> it = scope.getConnections();
+		
+		while (it.hasNext()) {
+		IConnection conn = it.next();
+		if (conn.equals(current)) continue;
+			if (conn instanceof IServiceCapableConnection) {
+				((IServiceCapableConnection) conn).invoke("someClientMethod", new Object[]{"Hello World"});
+				log.debug("sending notification to "+conn);
+			}	
+		}
+	}	
+	public ArrayList getUserList() {
+		/*IConnection conn = Red5.getConnectionLocal();		
+		if (conn instanceof IServiceCapableConnection) {
+			((IServiceCapableConnection) conn).invoke("receive_private", new Object[]{"zaza"});
+			log.info("getUserList"+conn.getClient().getId());
+		}*/
+		//listeObjectUsers.toString()
+		log.info("getUserList called");		
+		return listeObjectUsers;		
+	}	
+	public void send_private_id(String _id,String texte) {
+		//IConnection current = Red5.getConnectionLocal();
+		Iterator<IConnection> it = scope.getConnections();
+		log.debug("send_private to "+_id+" "+texte);
+		//String uid = scope.getClient().getId();
+		while (it.hasNext()) {
+		IConnection conn = it.next();
+		String id=conn.getClient().getId();
+		//if (vid.equals(id)) log.info("PAREIL"); else log.info("differents");
+		
+		if (!(_id.equals(id))) continue;
+		log.info("receive_private "+_id+" "+texte);
+			if (conn instanceof IServiceCapableConnection) {
+				((IServiceCapableConnection) conn).invoke("receive_private", new Object[]{texte});
+				log.info("received_private "+_id+" "+texte);
+			}	
+		}
+	}	
+	public void watches(String _id) {
+        IConnection conn2 = Red5.getConnectionLocal();
+	    String uid = conn2.getClient().getId();
+	    
+		Iterator<IConnection> it = scope.getConnections();
+		log.debug("watches "+_id);
+		while (it.hasNext()) {
+		IConnection conn = it.next();
+		String id=conn.getClient().getId();
+		
+		if (!(_id.equals(id))) continue;
+		log.info("receive_private "+_id);
+			if (conn instanceof IServiceCapableConnection) {
+				((IServiceCapableConnection) conn).invoke("watches", new Object[]{uid});
+				log.info(uid+" is wathcing "+_id);
+			}	
+		}
+	}	
+	public void ban(String _id) {
+		Iterator<IConnection> it = scope.getConnections();
+		log.debug("ban called: "+_id);
+		while (it.hasNext()) {
+		IConnection conn = it.next();
+		String id=conn.getClient().getId();
+		if (!(_id.equals(id))) continue;
+
+			if (conn instanceof IServiceCapableConnection) {
+				((IServiceCapableConnection) conn).invoke("IhaveBeenBanned", new Object[]{_id});
+				log.info("ban "+_id);
+			}	
+		}
+	}			
+	public void kick(String _id) {
+		Iterator<IConnection> it = scope.getConnections();
+		log.debug("kick caleed: "+_id);
+		while (it.hasNext()) {
+		IConnection conn = it.next();
+		String id=conn.getClient().getId();
+		if (!(_id.equals(id))) continue;
+			if (conn instanceof IServiceCapableConnection) {
+				((IServiceCapableConnection) conn).invoke("IhaveBeenKicked", new Object[]{_id});
+				log.info("kick "+_id);
+			}	
+		}
+	}	
+	public void send_private(String _id,String texte) {
+		//IConnection current = Red5.getConnectionLocal();
+		Iterator<IConnection> it = scope.getConnections();
+		log.debug("send_private to "+_id+" "+texte);
+		//String uid = scope.getClient().getId();
+		while (it.hasNext()) {
+		IConnection conn = it.next();
+		String id=conn.getClient().getId();
+		log.debug("id="+id+ " senTO="+_id);
+		//if (sendTo.equals(id)) log.info("PAREIL"); else log.info("differents");
+		
+		if (!(_id.equals(id))) continue;
+		log.info("receive_private "+_id+" "+texte);
+			if (conn instanceof IServiceCapableConnection) {
+				((IServiceCapableConnection) conn).invoke("receive_private", new Object[]{texte});
+				log.info("received_private "+_id+" "+texte);
+			}	
+		}
+	}	
+	public void change_status(String status) {
+		//
+        IScope appScope = Red5.getConnectionLocal().getScope();
+        IConnection conn = Red5.getConnectionLocal();
+	    String uid = conn.getClient().getId();
+	    log.debug("change_status called form id:"+uid+" :"+status);
+        ServiceUtils.invokeOnAllConnections (appScope, "change_status", new Object[]{uid,status} );
+       // return (new Object[]{uid,status});
+	}
+	public int connected_users() {	
+		return listeObjectUsers.toArray().length;
+	}	
+	public Double add(Double a, Double b){
+        return a + b;
+    }
+	public Boolean appStart() {
+		//users_so = SharedObject.get("users_so", false);
+	     createSharedObject(Red5.getConnectionLocal().getScope(), "users_so", false);
+	     log.debug("application START!");
+		return true;
+		
+	}
+	public boolean roomStart(IScope room) {
+		log.info( "Red5First.room start " + room);
+	      if (!super.roomStart(room))
+	          return false;	      
+	      //createSharedObject(room, "sampleSO", true);
+	      //ISharedObject so = getSharedObject(room, "sampleSO");
+	      // Now you could do something with the shared object...
+	    
+	      return true;            
+	  }	
+	public String whoami() {
+	    IConnection conn = Red5.getConnectionLocal();
+	    IClient client = conn.getClient();
+	    IScope scope = conn.getScope();
+	    return client.getId();
+	    // ...
+	}
+	public void callclient() {
+		log.info("callclient called");
+		IConnection conn = Red5.getConnectionLocal();
+		if (conn instanceof IServiceCapableConnection) {
+		    IServiceCapableConnection sc = (IServiceCapableConnection) conn;
+		    log.info("flashmethod called");
+		    sc.invoke("flashmethod", new Object[]{"One", 1});
+		}
+	}
+	public boolean appConnect( IConnection conn , Object[] params )
+	{	
+		//String id=conn.getClient().getId();
+		//String username=(String)params[1];
+		//String password=(String)params[2];
+		//String sexe=(String)params[3];
+		//String status=(String)params[4];
+		// cherche si user déjà dans la liste 
+		//Cuser user=new Cuser(id,username,password,sexe,status);
+		/*if (this.list[UserName]) {
+			application.rejectConnection(newClient, {msg:"Nom déjà utilisé, essayez de nouveau."});
+			trace("### name taken");
+			return;
+		} 
+		*/
+		
+		
+	    log.info( "appConnect " + conn.getClient().getId() );
+	    //boolean accept = (Boolean)params[0];
+	    //String user=(String)params[1];
+	   // if ( !accept ) rejectClient( "you passed false..." );
+	    return true;
+	}
+	public void appDisconnect( IConnection conn){	    
+		log.info( "Red5First.appDisconnect " + conn.getClient().getId() );
+       // IScope appScope = Red5.getConnectionLocal().getScope();
+       // ServiceUtils.invokeOnAllConnections (appScope, "removeuser", new Object[] { "zaza" } );
+		
+	}	
+	public void appStop() {
+		log.info( "Red5First.appStop" );
+
+	}
+}

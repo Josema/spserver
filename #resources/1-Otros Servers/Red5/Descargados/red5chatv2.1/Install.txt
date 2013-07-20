@@ -1,0 +1,46 @@
+SIMPLE INSTALLATION GUIDE
+-------------------------
+
+FLASH PART
+----------
+edit the FLA red5Chat.fla and configure these lines:
+
+_root.IP = "88.191.36.127";
+_root.port=1934;
+
+_root.authentificateURL = "http://"+_root.IP+"/red5chat/testlogin.php";
+_root.infoUserURL="http://"+_root.IP+"/red5chat/infouser.php";
+
+
+
+
+
+PHP part (only if you connect to the database for user authentification)
+-------------------------------------------------------------------------
+
+If you use the AUTHENTIFICATION (_root.authentification=true):
+- Create tables form create_tables.sql
+- edit the PHP/connections folder and setup con1.php to connect the database
+
+
+
+RED5 part
+---------
+
+- create the chat directory on c:\program files\red5\webapps\
+- compile the JAVA and put the classes
+
+
+
+
+
+
+
+THAT's all !
+
+Any question ?
+Please contact me at: contact@proxymis.com
+tel: 00 333 2031 9229
+
+
+

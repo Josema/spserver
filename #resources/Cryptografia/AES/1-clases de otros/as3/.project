@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>LIA</name>
+	<comment></comment>
+	<projects>
+	</projects>
+	<buildSpec>
+		<buildCommand>
+			<name>com.powerflasher.fdt.core.FlashBuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+	</buildSpec>
+	<natures>
+		<nature>com.powerflasher.fdt.core.FlashNature</nature>
+	</natures>
+	<linkedResources>
+		<link>
+			<name>playerglobal.swc</name>
+			<type>1</type>
+			<locationURI>Flash10/playerglobal.swc</locationURI>
+		</link>
+		<link>
+			<name>AS3_Core_Library</name>
+			<type>2</type>
+			<locationURI>AS3_Core_Library</locationURI>
+		</link>
+		<link>
+			<name>CS3Components</name>
+			<type>2</type>
+			<locationURI>CS3Components</locationURI>
+		</link>
+	</linkedResources>
+</projectDescription>

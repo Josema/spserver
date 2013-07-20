@@ -1,0 +1,29 @@
+This is a class to create a socket-based server easily in PHP
+
+
+FILES
+
+example.php     : just an exemple file
+
+ClsSocketServer : the class to extend to create your socket server
+
+
+REQUIREMENTS
+
+- PHP 5 or later
+- PHP socket functions (most of the distribs have them by default)
+
+
+INSTALLATION
+
+1. Read www.cyrilmazur.com to find out more
+
+2. You can add a daemon behavior to your socket server with another tutorial on www.cyrilmazur.com
+
+
+More info at www.cyrilmazur.com
+
+Enjoy ;-)
+
+Cyril Mazur
+www.cyrilmazur.com      twitter.com/CyrilMazur      facebook.com/CyrilMazur

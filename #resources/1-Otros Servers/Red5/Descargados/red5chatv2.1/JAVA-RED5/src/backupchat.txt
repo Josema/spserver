@@ -1,0 +1,181 @@
+package chat;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import org.red5.server.adapter.ApplicationAdapter;
+import org.red5.server.api.IConnection;
+import org.red5.server.api.IClient;
+import org.red5.server.api.IScope;
+import java.util.*;
+import org.red5.server.api.service.ServiceUtils;
+import org.red5.server.api.service.*;
+import org.red5.server.api.Red5;
+
+
+//import org.apache.commons.logging.Log;
+//import org.apache.commons.logging.LogFactory;
+
+
+
+public class Application extends ApplicationAdapter {
+
+	public Map<String, CClient> clients = new HashMap<String, CClient>();	
+	public class CClient{
+		String id = null;
+		String pseudo = null;
+		String role = null;
+		String sexe = null;
+		String status = null;
+		String room=null;
+		String world=null;
+
+		public String getRole(){
+		return role;
+		}
+		public String getName(){
+		return pseudo;
+		}
+		public String getId(){
+		return id;
+		}
+		public String getSexe(){
+			return sexe;
+			}
+		public String getStatus(){
+			return status;
+			}	
+		public String getRoom(){
+			return room;
+			}		
+		public String getWorld(){
+			return world;
+			}			
+		public void setRole(String _role){
+		role = _role;
+		}
+		public void setPseudo(String _pseudo){
+		pseudo = _pseudo;
+		}
+		public void setSexe(String _sexe){
+		sexe = _sexe;
+		}
+		public void setId(String _id){
+			id = _id;
+			}
+		public void setStatus(String _status){
+			status = _status;
+			}
+		public void setRoom(String _room){
+			room = _room;
+			}	
+		public void setWorld(String _world){
+			world = _world;
+			}		
+		}
+
+	public boolean connect(IConnection conn, IScope scope, Object[] params) {	
+		//  pseudo role sexe status room world;		
+		// Check if the user passed valid parameters.
+		log.info( "**connection" );
+		log.info("**connect IConnection nombre params="+ params.length);
+		log.debug("**connect IConnection nombre params="+ params.length);
+		
+		
+		if (params == null || params.length != 6) {
+			// NOTE: "rejectClient" terminates the execution of the current method!
+			rejectClient("6 params expected.");
+		}
+		String pseudo=params[0].toString();
+		String id=conn.getClient().getId();
+		
+		((IServiceCapableConnection) conn).invoke("flashmethod", new Object[]{"connect", pseudo+id});
+
+		if (clients.get(pseudo) != null) {
+			rejectClient("PSEUDO ALREADY IN USE");
+		}	
+		// we do create a new user !
+
+		log.info( "connection pseudo:"+pseudo);
+		log.info( "connection id:"+id);		
+
+		
+		CClient client = new CClient();
+		client.setId(id);
+		client.setPseudo(pseudo);
+		client.setRole(params[1].toString());
+		client.setSexe(params[2].toString());
+		client.setStatus(params[3].toString());
+		client.setRoom(params[4].toString());
+		client.setWorld(params[5].toString());			
+		clients.put(pseudo, client); // clients["yarek"]=client
+		conn.setAttribute("psuedo", pseudo);
+		
+		return true;
+	}		
+	
+	public void disconnect(IConnection conn, IScope scope) {
+		log.info( "disconnect");
+		String pseudo=conn.getClient().getAttribute("pseudo").toString();
+		//log.info( "disconnect:"+pseudo);
+		String id=conn.getClient().getId();
+		((IServiceCapableConnection) conn).invoke("flashmethod", new Object[]{"disconnect", pseudo+id});
+		
+
+		// Unregister user.
+		//ServiceUtils.invokeOnAllConnections (scope, "removeuser", new Object[] {pseudo} );		
+		if (pseudo==null) {
+			clients.clear();
+		}
+		else {
+			CClient u = clients.get(pseudo);
+			clients.remove(u);
+		}
+		// ISharedObject so = getSharedObject(scope, "users_so");
+		// so.endUpdate();	
+        //IScope appScope = Red5.getConnectionLocal().getScope();
+		
+		// Call original method of parent class.
+		super.disconnect(conn, scope);
+		
+	}
+	
+	/*
+	 * public boolean roomConnect(IConnection iconnection, Object params[]){
+		if(!super.roomConnect(iconnection, params)){
+		//log.info((new StringBuilder()).append("Application failed to connect room: ").append(iconnection.getScope().getName()).toString());
+		return false;
+		} 
+		else{
+		//log.info((new StringBuilder()).append("Application room connect initiated for room ").append(iconnection.getScope().getName()).append(": ").toString());
+
+//		We will add our client information right here
+		CClient client = new CClient();
+		client.setId(params[0].toString());
+		client.setPseudo(params[1].toString());
+		client.setRole(params[2].toString());
+		client.setSexe(params[3].toString());
+		client.setStatus(params[4].toString());		
+		iconnection.getClient().setAttribute("client", client);
+		return true;
+		}
+		
+		}
+		*/
+	public void callclient() {
+		log.info("callclient called");
+		IConnection conn = Red5.getConnectionLocal();
+		if (conn instanceof IServiceCapableConnection) {
+		    IServiceCapableConnection sc = (IServiceCapableConnection) conn;
+		    log.info("flashmethod called");
+		    sc.invoke("flashmethod", new Object[]{"One", 1});
+		}
+	}
+	
+    public String debug (String msg){
+        return msg;
+    }
+    public double add(double a, double b){
+        return a + b;
+    }
+
+}

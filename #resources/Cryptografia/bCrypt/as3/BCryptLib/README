@@ -1,0 +1,33 @@
+BCryptLib is an ActionScript 3 implementation the OpenBSD Blowfish password hashing
+algorithm, as described in "A Future-Adaptable Password Scheme" by Niels Provos and
+David Mazieres: http://www.openbsd.org/papers/bcrypt-paper.ps
+
+This system hashes passwords using a version of Bruce Schneier's Blowfish block
+cipher with modifications designed to raise the cost of off-line password cracking.
+The computation cost of the algorithm is parameterised, so it can be increased as
+computers get faster.
+
+BCryptLib is licensed under a ISC/BSD licence. See the LICENSE file for details.
+Please report bugs to Artur Kordowski <info@newsight.de>.
+
+A simple example that demonstrates most of the features:
+
+	// Hash a password for the first time
+	var hashed:String = BCrypt.hashPassword(password, BCrypt.generateSalt());
+
+	// gensalt's log_rounds parameter determines the complexity
+	// the work factor is 2**log_rounds, and the default is 10
+	var hashed:String = BCrypt.hashPassword(password, BCrypt.generateSalt(12));
+
+	// Check that an unencrypted password matches one that has
+	// previously been hashed
+	if (BCrypt.checkPassword(password, hashed))
+		trace("It matches");
+	else
+		trace("It does not match");
+
+BCryptLib is ported from the jBCrypt class, created by Damien Miller <djm@mindrot.org>.
+http://www.mindrot.org/projects/jBCrypt/
+
+There is also a C#/.NET port by Derek Slager:
+http://derekslager.com/blog/posts/2007/10/bcrypt-dotnet-strong-password-hashing-for-dotnet-and-mono.ashx
