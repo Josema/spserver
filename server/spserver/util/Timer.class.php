@@ -21,15 +21,15 @@ use spserver\events\Event;
 class Timer extends EventDispatcher
 {
 	
-	//////////////////
-	//	PROPERTIES  //
-	//////////////////
+	/////////////////
+    //	VARIABLES  //
+    /////////////////
 	
-	/**
+    /**
 	 * The id of the Timer
 	 * @var int
 	 */
-	protected $id;
+    protected $id;
 
 	
 	/**
@@ -64,8 +64,8 @@ class Timer extends EventDispatcher
 
 	
 	///////////////
-	//	METHODS  //
-	///////////////
+    //	METHODS  //
+    ///////////////
 	
 	/**
 	 * Create instance Timer
@@ -86,9 +86,9 @@ class Timer extends EventDispatcher
 	 * Id socket client
 	 * @return int
 	 */
-	public function id()
+    public function id()
 	{
-		return $this->id;
+	    return $this->id;
 	}
 
 
@@ -98,7 +98,7 @@ class Timer extends EventDispatcher
 	 * @param int $id
 	 * @return void
 	 */
-	public function setId($id)
+    public function setId($id)
 	{
 	   $this->id = $id;
 	}
@@ -117,16 +117,16 @@ class Timer extends EventDispatcher
 			{
 				$this->repeats += 1;
 				$this->dispatchEvent(new Event(Event::TIMER_LOOP,(object) array(
-						'timer' => $this, 
-						'repeats' => $this->repeats
-				)));
+                        'timer' => $this, 
+                        'repeats' => $this->repeats
+                )));
 			}
 			if ($this->repeatTotal > 0 && $this->repeats == $this->repeatTotal)
 			{
 				$this->dispatchEvent(new Event(Event::TIMER_COMPLETE,(object) array(
-					'timer' => $this, 
-					'repeats' => $this->repeats
-				)));
+                	'timer' => $this, 
+                    'repeats' => $this->repeats
+                )));
 				$this->running = false;
 			}
 		}
@@ -147,9 +147,9 @@ class Timer extends EventDispatcher
 	 * If timer is running
 	 * @return bool
 	 */
-	public function running()
+    public function running()
 	{
-		return $this->running;
+	    return $this->running;
 	}
 
 	/**
@@ -158,7 +158,7 @@ class Timer extends EventDispatcher
 	 */
 	static public function militime()
 	{
-		return (microtime(true)*1000);
+    	return (microtime(true)*1000);
 	}
 }
 

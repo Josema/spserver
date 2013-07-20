@@ -12,34 +12,33 @@
 namespace spserver\core;
 use spserver\util\Error;
 use spserver\core\Server;
-use spserver\util\Encapsulation;
 
 
-class Group extends Encapsulation
+class Group
 {
 
 
-	//////////////////
-	//	PROPERTIES  //
-	//////////////////
+    /////////////////
+    //	VARIABLES  //
+    /////////////////
 
-	/**
+    /**
 	 * The id of the server
 	 * @var Server
 	 */
-	protected $server;
-	
-	/**
+    protected $server;
+    
+    /**
 	 * The id of the group
 	 * @var int
 	 */
-	protected $id;
-	
-	/**
+    protected $id;
+    
+    /**
 	 * The id of the sockets listener on the core
 	 * @var int
 	 */
-	protected $idSocket;
+    protected $idSocket;
 	
 	/**
 	 * The array of ids the clients
@@ -52,8 +51,8 @@ class Group extends Encapsulation
 
 
 	///////////////
-	//	METHODS  //
-	///////////////
+    //	METHODS  //
+    ///////////////
 
 	/**
 	 * Create instance of data Group
@@ -65,15 +64,51 @@ class Group extends Encapsulation
 	 */
 	public function __construct($idSocket)
 	{
-		//Encapsulation
-		$this->addGet('server');
-		$this->addSet('server');
-		$this->addGet('id');
-		$this->addSet('id');
-		$this->addGet('idSocket');
+        $this->idSocket = $idSocket;
+	}
 
 
-		$this->idSocket = $idSocket;
+	/**
+	 * Set a id of this group
+	 * 
+	 * @param int $id
+	 * @return void
+	 */
+    public function setId($id)
+	{
+	   $this->id = $id;
+	}
+
+
+	/**
+	 * Set a server father instance
+	 * 
+	 * @param Server $server
+	 * @return void
+	 */
+    public function setServer(Server $server)
+	{
+	   $this->server = $server;
+	}
+
+
+	/**
+	 * Id group
+	 * @return int
+	 */
+    public function id()
+	{
+	    return $this->id;
+	}
+
+
+	/**
+	 * Id master socket
+	 * @return int
+	 */
+    public function idSocket()
+	{
+	    return $this->idSocket;
 	}
 	
 	
@@ -83,15 +118,15 @@ class Group extends Encapsulation
 	 * @param int $idClient
 	 * @return void
 	 */
-	public function addClient($idClient)
+    public function addClient($idClient)
 	{
-		if (!isset($this->clients[$idClient]) && $this->server->client($idClient)->idSocket == $this->idSocket)
-		{
-			$this->clients[$idClient] = true;
-			$this->server->client($idClient)->groups[$this->id] = true;
-		}
-		else
-			Error::NOTICE(20);
+	    if (!isset($this->clients[$idClient]) && $this->server->client($idClient)->idSocket() == $this->idSocket)
+	    {
+	        $this->clients[$idClient] = true;
+	        $this->server->client($idClient)->groups[$this->id] = true;
+	    }
+	    else
+	        throw new Error(20);
 	}
 	
 	
@@ -100,13 +135,13 @@ class Group extends Encapsulation
 	 * @param int $idClient
 	 * @return void
 	 */
-	public function removeClient($idClient)
+    public function removeClient($idClient)
 	{
-		if (isset($this->clients[$idClient]))
-		{
-			unset($this->clients[$idClient]);
-			unset($this->server->client($idClient)->groups[$this->id]);
-		}
+	    if (isset($this->clients[$idClient]))
+	    {
+	        unset($this->clients[$idClient]);
+	        unset($this->server->client($idClient)->groups[$this->id]);
+	    }
 	}
 	
 	
@@ -116,10 +151,10 @@ class Group extends Encapsulation
 	 * @param string $data
 	 * @return void
 	 */
-	public function send($data)
+    public function send($data)
 	{
-		foreach ($this->clients as $idClient => $true)
-			$this->server->send($idClient, $data);
+	    foreach ($this->clients as $idClient => $true)
+	        $this->server->send($idClient, $data);
 	}
 }
 ?>

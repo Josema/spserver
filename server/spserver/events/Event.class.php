@@ -54,9 +54,9 @@ class Event	{
 	 * 
 	 * @var boolean $bubbles
 	 */
-	
-	
-	
+    
+    
+    
 	/**
 	 * Se lanza cuando hay algun error
 	 * 
@@ -86,7 +86,7 @@ class Event	{
 	const SERVER_BANREMOVED = 'serverBanremoved';
 
 
-	/**
+    /**
 	 * Se lanza cuando se conecta un nuevo cliente a un Socket
 	 * 
 	 * @param int parameter->idSocket
@@ -169,7 +169,7 @@ class Event	{
 	
 	
 	
-		
+	    
    /**
 	 * Defines the fase types.
 	 * @var int
@@ -181,8 +181,8 @@ class Event	{
 	
 	
 	
-	
-	
+    
+    
 	 
 	public $bubbles = false;
 	/**

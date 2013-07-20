@@ -56,9 +56,8 @@ require_once dirname(__FILE__) . '/Event.class.php';
 
 use spserver\events\IEventDispatcher;
 use spserver\events\Event;
-use spserver\util\Encapsulation;
  
-class EventDispatcher extends Encapsulation implements IEventDispatcher {
+class EventDispatcher implements IEventDispatcher {
 	/**
 	 * The target object for events dispatched to the EventDispatcher object.
 	 * This parameter is used when the EventDispatcher instance is aggregated by a class that implements Dispatcher; 
@@ -162,7 +161,7 @@ class EventDispatcher extends Encapsulation implements IEventDispatcher {
 		/**
 		 * Event Target phase
 		 */
-		
+	    
 		//print_r($this->listeners);
 		if( isset( $this->listeners[$type] ) )	{
 			$event->setPhase( Event::PHASE_TARGET );

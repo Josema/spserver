@@ -23,6 +23,7 @@ require_once dirname(__FILE__) . '/Group.class.php';
 use spserver\events\EventDispatcher;
 use spserver\events\Event;
 use spserver\util\Timer;
+use spserver\util\Error;
 use spserver\util\Strings;
 use spserver\core\Socket;
 use spserver\core\Client;
@@ -33,95 +34,95 @@ class Server extends EventDispatcher
 {
 
 
+    /////////////////
+    //	CONSTANTS  //
+    /////////////////
+
+    const BUCLE_TIME_LIMIT = 500; //Max miliseconds stop the loop by socket_select()
+    
+    
+    
+
+
 	/////////////////
-	//	CONSTANTS  //
-	/////////////////
-
-	const BUCLE_TIME_LIMIT = 500; //Max miliseconds stop the loop by socket_select()
-	
-	
-	
-
-
-	//////////////////
-	//	PROPERTIES  //
-	//////////////////
+    //	VARIABLES  //
+    /////////////////
 
 	/**
 	 * Sockets classes
 	 * @var array
 	 */
-	protected $sockets = array();
+    protected $sockets = array();
 
-	/**
+    /**
 	 * Sockets id increment
 	 * @var int
 	 */
-	protected $incSocket = 1;
+    protected $incSocket = 1;
 
-	/**
+    /**
 	 * Clients classes
 	 * @var array
 	 */
-	protected $clients = array();
+    protected $clients = array();
 
-	 /**
+     /**
 	 * Clients id increment
 	 * @var int
 	 */
-	protected $incClients = 1;
+    protected $incClients = 1;
 
-	/**
+    /**
 	 * Groups classes
 	 * @var array
 	 */
-	protected $groups = array();
-	
-	
-	/**
+    protected $groups = array();
+    
+    
+    /**
 	 * Timers classes
 	 * @var array
 	 */
-	protected $timers = array();
+    protected $timers = array();
 
-	 /**
+     /**
 	 * Groups id increment
 	 * @var int
 	 */
-	protected $incGroups = 1;
-	
-	
-	/**
+    protected $incGroups = 1;
+    
+    
+    /**
 	 * Timers id increment
 	 * @var int
 	 */
-	protected $incTimers = 1;
+    protected $incTimers = 1;
 
-	/**
+    /**
 	 * Running server in bucle start()
 	 * @var Boolean
 	 */
-	protected $running = true;
+    protected $running = true;
 
-	/**
+    /**
 	 * Array of all ips banned
 	 * @var array
 	 */
-	protected $bans = array();
+    protected $bans = array();
 
-	/**
-	 * Time Limit of the main loop, if he doesn't get any data. Max miliseconds stop the loop by socket_select()
+    /**
+	 * Array of all ips banned
 	 * @var int
 	 */
-	protected $bucleTimeLimit;
+    public $bucleTimeLimit;
 
 
 
-	///////////////
-	//	METHODS  //
-	///////////////
+    ///////////////
+    //	METHODS  //
+    ///////////////
 
-	public function __construct($bucleTimeLimit = Server::BUCLE_TIME_LIMIT)
+    public function __construct($bucleTimeLimit = Server::BUCLE_TIME_LIMIT)
 	{
 		$this->bucleTimeLimit = $bucleTimeLimit;
 	}
@@ -132,10 +133,10 @@ class Server extends EventDispatcher
 	 * @param integer|resource $socket
 	 * @return Socket
 	 */
-	public function socket($socket)
+    public function socket($socket)
 	{
-		$id = (gettype($socket) == 'integer') ? $socket : $this->getIdSocketByResource($socket);
-		return (isset($this->sockets[$id])) ? $this->sockets[$id] : null;
+    	$id = (gettype($socket) == 'integer') ? $socket : $this->getIdSocketByResource($socket);
+        return $this->sockets[$id];
 	}
 
 
@@ -145,10 +146,10 @@ class Server extends EventDispatcher
 	 * @param integer|resource $client
 	 * @return Client
 	 */
-	public function client($client)
+    public function client($client)
 	{
-		$id = (gettype($client) == 'integer') ? $client : $this->getIdClientByResource($client);
-		return (isset($this->clients[$id])) ? $this->clients[$id] : null;
+    	$id = (gettype($client) == 'integer') ? $client : $this->getIdClientByResource($client);
+        return $this->clients[$id];
 	}
 
 
@@ -158,9 +159,9 @@ class Server extends EventDispatcher
 	 * @param integer $idGroup
 	 * @return Group
 	 */
-	public function group($idGroup)
+    public function group($idGroup)
 	{
-		return $this->groups[$idGroup];
+        return $this->groups[$idGroup];
 	}
 
 	
@@ -170,9 +171,9 @@ class Server extends EventDispatcher
 	 * @param integer $idTimer
 	 * @return Timer
 	 */
-	public function timer($idTimer)
+    public function timer($idTimer)
 	{
-		return $this->timers[$idTimer];
+        return $this->timers[$idTimer];
 	}
 
 
@@ -181,143 +182,143 @@ class Server extends EventDispatcher
 	 *  
 	 * @return void
 	 */
-	public function start()
+    public function start()
 	{
-		while ($this->running)
-		{
-			//Preparamos el array de listeners para iniciar la escucha
-			$sockets = array();
-			$clients = array();
-			foreach ($this->sockets as $item)
-				$sockets[] = $item->resource;
-			foreach ($this->clients as $item)
-				$clients[] = $item->resource;
-			$listening = array_merge($sockets, $clients);
+	    while ($this->running)
+	    {
+    	    //Preparamos el array de listeners para iniciar la escucha
+    	    $sockets = array();
+    	    $clients = array();
+    	    foreach ($this->sockets as $item)
+                $sockets[] = $item->resource();
+    	    foreach ($this->clients as $item)
+    	        $clients[] = $item->resource();
+    	    $listening = array_merge($sockets, $clients);
 
 
-			// socket_select para el bucle y queda a la espera de recibir algun dato nuevo en los resources pasados por parametros
-			// una vez que reciba algo continuará el script y el array $listening que se pasó por parametro contendra unicamente los 
-			// resources que hayan sufrido cambios. Esta funcion bloquea el bucle pero una vez pasado el tiempo establecido por TIME_STOP_SELECT
-			// hará que continue el bucle de igual forma aunque no hayan actualizaciones en los $listeners.
-			@socket_select($listening, $write = NULL, $except = NULL, 0, ($this->bucleTimeLimit*1000));
+            // socket_select para el bucle y queda a la espera de recibir algun dato nuevo en los resources pasados por parametros
+    	    // una vez que reciba algo continuará el script y el array $listening que se pasó por parametro contendra unicamente los 
+    		// resources que hayan sufrido cambios. Esta funcion bloquea el bucle pero una vez pasado el tiempo establecido por TIME_STOP_SELECT
+    		// hará que continue el bucle de igual forma aunque no hayan actualizaciones en los $listeners.
+            @socket_select($listening, $write = NULL, $except = NULL, 0, ($this->bucleTimeLimit*1000));
 
-			//Recorremos todos los resources actualizados por socket_select
-			foreach ($listening as $resource)
-			{
-				 
-				//Si el resource es de tipo Socket
-				if (in_array($resource, $sockets))
-				{
-					$id = $this->getIdSocketByResource($resource);
+            //Recorremos todos los resources actualizados por socket_select
+    		foreach ($listening as $resource)
+    		{
+    			 
+        		//Si el resource es de tipo Socket
+        		if (in_array($resource, $sockets))
+        		{
+        		    $id = $this->getIdSocketByResource($resource);
 
-					$newclient = @socket_accept($resource);
-					while ($newclient !== false)
-					{
-						$ip = NULL;
-						socket_getpeername($newclient, $ip); //Generamos ip del cliente
+                    $newclient = @socket_accept($resource);
+            		while ($newclient !== false)
+            		{
+                	    $ip = NULL;
+                	    socket_getpeername($newclient, $ip); //Generamos ip del cliente
 
-						//Comprobamos si la ip esta baneada o repetida excesivamente y tambien comprobamos si se ha pasado el maximo de usuarios
-						if ($this->possibleNewClientByIP($ip, $id) && $this->possibleNewClientByMax($id))
-						{
-							$this->dispatchEvent(new Event(Event::CLIENT_CONNECT, (object) array(
-								'idSocket' => $id,
-								'idClient' => $this->incClients,
-								'ip' => $ip,
-								'resourceClient' => $newclient
-							)));
-						}
-						else
-							socket_close($newclient);
-						
+                	    //Comprobamos si la ip esta baneada o repetida excesivamente y tambien comprobamos si se ha pasado el maximo de usuarios
+                	    if ($this->possibleNewClientByIP($ip, $id) && $this->possibleNewClientByMax($id))
+                	    {
+                			$this->dispatchEvent(new Event(Event::CLIENT_CONNECT, (object) array(
+                    			'idSocket' => $id,
+                    			'idClient' => $this->incClients,
+                    			'ip' => $ip,
+                    			'resourceClient' => $newclient
+                    		)));
+                	    }
+                	    else
+                	        socket_close($newclient);
+            			
 
-						$newclient = @socket_accept($resource);
-					}
-				}
+            			$newclient = @socket_accept($resource);
+            		}
+        		}
 
-				 
-				//Si el resource es un cliente
-				else 
-				{
-					$id = $this->getIdClientByResource($resource);
-					$idSocket = $this->clients[$id]->idSocket;
-					$this->clients[$id]->timeout = time();
-					$data = @socket_read($resource, ($this->sockets[$idSocket]->maxBuffer+1), PHP_BINARY_READ);
-					#$data = $this->readSocketForDataLength($resource, ($this->sockets[$idSocket]->maxBuffer+1));
+        		 
+    			//Si el resource es un cliente
+    			else 
+    			{
+    			    $id = $this->getIdClientByResource($resource);
+    			    $idSocket = $this->clients[$id]->idSocket();
+    			    $this->clients[$id]->timeout = time();
+    				$data = @socket_read($resource, ($this->sockets[$idSocket]->maxBuffer+1), PHP_BINARY_READ);
+    				#$data = $this->readSocketForDataLength($resource, ($this->sockets[$idSocket]->maxBuffer+1));
 
-					
-					if (strlen($data) <= $this->sockets[$idSocket]->maxBuffer)
-					{
-						if (!$data)
-							$this->removeClient($id, true);
+    				
+    				if (strlen($data) <= $this->sockets[$idSocket]->maxBuffer)
+    				{
+        				if (!$data)
+        					$this->removeClient($id, true);
 
-						else
-						{
-							$object = (object) array(
-								'idSocket' => $idSocket,
-								'idClient' => $id,
-								'data' => $data,
-								'resourceClient' => $resource
-							);
-							
-							if ($data == '<policy-file-request/>' . chr(0x00))
-								$this->dispatchEvent(new Event(Event::CLIENT_POLICY, $object));
+        				else
+        				{
+        				    $object = (object) array(
+        				    	'idSocket' => $idSocket,
+        				    	'idClient' => $id,
+        				    	'data' => $data,
+        				    	'resourceClient' => $resource
+        				    );
+        				    
+        				    if ($data == '<policy-file-request/>' . chr(0x00))
+        				        $this->dispatchEvent(new Event(Event::CLIENT_POLICY, $object));
 
-							else
-								$this->dispatchEvent(new Event(Event::CLIENT_DATA, $object));
-						}
-					}
-					else
-					{
-						$this->dispatchEvent(new Event(Event::SERVER_WARNING, (object) array(
-							'idSocket' => $idSocket,
-							'idClient' => $id,
-							'ip' => $this->clients[$id]->ip,
-							'resourceClient' => $resource,
-							'code' => 11
-						)));
-					}
-					
-					unset($object);
-					unset($data);
-				}
-			}
+        				    else
+            				    $this->dispatchEvent(new Event(Event::CLIENT_DATA, $object));
+        				}
+    				}
+    				else
+    				{
+    				    $this->dispatchEvent(new Event(Event::SERVER_WARNING, (object) array(
+                			'idSocket' => $idSocket,
+                			'idClient' => $id,
+                			'ip' => $this->clients[$id]->ip(),
+                			'resourceClient' => $resource,
+            		        'code' => 11
+                		)));
+    				}
+    				
+    				unset($object);
+    				unset($data);
+    			}
+    	    }
 			
-			
-			// TIMERS //
-			foreach ($this->timers as $timer)
-			   $timer->launch();
+    	    
+	    	// TIMERS //
+    	    foreach ($this->timers as $timer)
+    	       $timer->launch();
  
-			
-			// TIMEOUT //
-			$time = time();
-			foreach ($this->clients as $client)
-			{
-				if (($time-$client->timeout) > $this->sockets[$client->idSocket]->timeout)
-				{
-					$this->dispatchEvent(new Event(Event::CLIENT_TIMEOUT, (object) array(
-						'idSocket' => $client->idSocket, 
-						'idClient' => $client->id, 
-						'ip' => $client->ip,
-						'resourceClient' => $client->resource
-					)));
-					$this->removeClient($client->id);
-				}
-			}
+    	    
+    	    // TIMEOUT //
+    	    $time = time();
+    	    foreach ($this->clients as $client)
+    	    {
+    	        if (($time-$client->timeout) > $this->sockets[$client->idSocket()]->timeout)
+    	        {
+        	        $this->dispatchEvent(new Event(Event::CLIENT_TIMEOUT, (object) array(
+                        'idSocket' => $client->idSocket(), 
+                        'idClient' => $client->id(), 
+                        'ip' => $client->ip(),
+                        'resourceClient' => $client->resource()
+                    )));
+                    $this->removeClient($client->id());
+    	        }
+    	    }
 
 
-			// REMOVE BANS TIMEOUT //
-			$time = time();
-			foreach ($this->bans as $md5 => $value)
-			{
-				if ($value[1] != NULL && ($time-($value[1]*60) > $value[2]))
-				{
-					$this->removeBan($value[0]);
-					$this->dispatchEvent(new Event(Event::SERVER_BANREMOVED, (object) array(
-						'ip' => $value[0]
-					)));
-				}
-			}
-		}
+	        // REMOVE BANS TIMEOUT //
+    	    $time = time();
+    	    foreach ($this->bans as $md5 => $value)
+    	    {
+    	        if ($value[1] != NULL && ($time-($value[1]*60) > $value[2]))
+    	        {
+    	            $this->removeBan($value[0]);
+    	            $this->dispatchEvent(new Event(Event::SERVER_BANREMOVED, (object) array(
+                        'ip' => $value[0]
+                    )));
+    	        }
+    	    }
+	    }
 	}
 	
 	
@@ -326,13 +327,13 @@ class Server extends EventDispatcher
 	 * 
 	 * @return void
 	 */
-	public function stop()
+    public function stop()
 	{
-		foreach ($this->sockets as $idSocket => $value)
-			$this->removeSocket($idSocket);
+	    foreach ($this->sockets as $idSocket => $value)
+            $this->removeSocket($idSocket);
 
-		$this->running = false;
-		exit();
+        $this->running = false;
+        exit();
 	}
 	
 
@@ -344,12 +345,12 @@ class Server extends EventDispatcher
 	 */
 	public function addSocket(Socket $socket)
 	{
-		$id = $this->incSocket;
-		$socket->id = $id;
-		$this->sockets[$id] = $socket;
-		$this->incSocket += 1;
+        $id = $this->incSocket;
+        $socket->setId($id);
+        $this->sockets[$id] = $socket;
+        $this->incSocket += 1;
 
-		return $id;
+        return $id;
 	}
 
 
@@ -362,11 +363,11 @@ class Server extends EventDispatcher
 	 */
 	public function removeSocket($idSocket, $launchEvent=false)
 	{
-		foreach ($this->sockets[$idSocket]->clients as $idClient => $value)
-			$this->removeClient($idClient, $launchEvent);
+        foreach ($this->sockets[$idSocket]->clients as $idClient => $value)
+            $this->removeClient($idClient, $launchEvent);
 
-		@socket_close($this->sockets[$idSocket]->resource);
-		unset($this->sockets[$idSocket]);
+        @socket_close($this->sockets[$idSocket]->resource());
+        unset($this->sockets[$idSocket]);
 	}
 	
 
@@ -378,10 +379,10 @@ class Server extends EventDispatcher
 	 */
 	public function addClient(Client $client)
 	{
-		$this->clients[$client->id] = $client; //Creamos instancia
-		$this->sockets[$client->idSocket]->clients[$client->id] = true; //Guardamos id del cliente en la clase socket
-		$this->clients[$client->id]->timeout = time();
-		$this->incClients += 1;
+        $this->clients[$client->id()] = $client; //Creamos instancia
+        $this->sockets[$client->idSocket()]->clients[$client->id()] = true; //Guardamos id del cliente en la clase socket
+        $this->clients[$client->id()]->timeout = time();
+        $this->incClients += 1;
 	}
 
 
@@ -394,17 +395,17 @@ class Server extends EventDispatcher
 	 */
 	public function removeClient($idClient, $launchEvent=false)
 	{
-		if ($launchEvent)
-			$this->dispatchEvent(new Event(Event::CLIENT_DISCONNECT, (object) array(
-				'idSocket' => $this->clients[$idClient]->idSocket, 
-				'idClient' => $idClient, 
-				'ip' => $this->clients[$idClient]->ip,
-				'resourceClient' => $this->clients[$idClient]->resource
-			)));
-		
-		@socket_close($this->clients[$idClient]->resource);
-		unset($this->sockets[$this->clients[$idClient]->idSocket]->clients[$idClient]);
-		unset($this->clients[$idClient]);  
+	    if ($launchEvent)
+    	    $this->dispatchEvent(new Event(Event::CLIENT_DISCONNECT, (object) array(
+            	'idSocket' => $this->clients[$idClient]->idSocket(), 
+            	'idClient' => $idClient, 
+            	'ip' => $this->clients[$idClient]->ip(),
+            	'resourceClient' => $this->clients[$idClient]->resource()
+            )));
+	    
+        @socket_close($this->clients[$idClient]->resource());
+        unset($this->sockets[$this->clients[$idClient]->idSocket()]->clients[$idClient]);
+	    unset($this->clients[$idClient]);  
 	}	
 
 	
@@ -417,12 +418,12 @@ class Server extends EventDispatcher
 	public function addGroup(Group $group)
 	{
 		$id = $this->incGroups;
-		$this->groups[$id] = $group;
-		$this->groups[$id]->id = $id;
-		$this->groups[$id]->server = $this;
-		$this->incGroups += 1;
-		
-		return $id;
+	    $this->groups[$id] = $group;
+	    $this->groups[$id]->setId($id);
+	    $this->groups[$id]->setServer($this);
+	    $this->incGroups += 1;
+	    
+	    return $id;
 	}
 
 	
@@ -434,8 +435,8 @@ class Server extends EventDispatcher
 	 */
 	public function removeGroup($idGroup)
 	{
-		if (isset($this->groups[$idGroup]))
-			unset($this->groups[$idGroup]);
+	    if (isset($this->groups[$idGroup]))
+	        unset($this->groups[$idGroup]);
 	}
 
 
@@ -448,11 +449,11 @@ class Server extends EventDispatcher
 	public function addTimer(Timer $timer)
 	{
 		$id = $this->incTimers;
-		$this->timers[$id] = $timer;
-		$this->timers[$id]->setId($id);
-		$this->incTimers += 1;
+        $this->timers[$id] = $timer;
+        $this->timers[$id]->setId($id);
+        $this->incTimers += 1;
 
-		return $id;
+        return $id;
 	}
 
 	/**
@@ -463,11 +464,11 @@ class Server extends EventDispatcher
 	 */
 	public function removeTimer($idTimer)
 	{
-		if (isset($this->timers[$idTimer]))
-		{
-			$this->timers[$idTimer]->stop();
-			unset($this->timers[$idTimer]);
-		}
+	    if (isset($this->timers[$idTimer]))
+	    {
+	    	$this->timers[$idTimer]->stop();
+	        unset($this->timers[$idTimer]);
+	    }
 	}
 	
 	/**
@@ -479,16 +480,16 @@ class Server extends EventDispatcher
 	 */
 	public function addBan($ip, $minutsBan=NULL, $automaticRemoveClients=true)
 	{
-		$md5 = md5($ip);
-		if ((Strings::IPv4($ip) || Strings::IPv6($ip)) && !isset($this->bans[$md5]))
-			$this->bans[$md5] = array($ip, $minutsBan, time());
+        $md5 = md5($ip);
+	    if ((Strings::IPv4($ip) || Strings::IPv6($ip)) && !isset($this->bans[$md5]))
+	        $this->bans[$md5] = array($ip, $minutsBan, time());
 
-		if ($automaticRemoveClients)
-		{
-			$idClients = $this->getIdClientsByIp($ip);
-			foreach ($idClients as $idClient)
-				$this->removeClient($idClient, true);
-		}
+	    if ($automaticRemoveClients)
+	    {
+	        $idClients = $this->getIdClientsByIp($ip);
+    	    foreach ($idClients as $idClient)
+        	    $this->removeClient($idClient, true);
+	    }
 	}
 
 
@@ -500,9 +501,9 @@ class Server extends EventDispatcher
 	 */
 	public function removeBan($ip)
 	{
-		$md5 = md5($ip);
-		if (isset($this->bans[$md5]))
-			unset($this->bans[$md5]);
+        $md5 = md5($ip);
+	    if (isset($this->bans[$md5]))
+	        unset($this->bans[$md5]);
 	}
 
 
@@ -513,29 +514,29 @@ class Server extends EventDispatcher
 	 * @param string $data
 	 * @return void
 	 */
-	public function send($client, $data)
+    public function send($client, $data)
 	{
-		if (gettype($client) == 'integer')
-		{
-			$id = $client;
-			if (!isset($this->clients[$id]->lastSent))
-			{
-				echo "#$id";
-				print_r($data);
-				print_r($this->clients);
-			}
-			$lastSent = $this->clients[$id]->lastSent;
-			$resource = $this->clients[$id]->resource;
-		}
-		else
-		{
-			$id = $this->getIdClientByResource($client);
-			$lastSent = $this->clients[$id]->lastSent;
-			$resource = $client;
-		}
+    	if (gettype($client) == 'integer')
+    	{
+    		$id = $client;
+    		if (!isset($this->clients[$id]->lastSent))
+    		{
+    			echo "Some problem: Server.class.php:524#$id";
+    			print_r($data);
+    			print_r($this->clients);
+    		}
+    		$lastSent = $this->clients[$id]->lastSent;
+    		$resource = $this->clients[$id]->resource();
+    	}
+    	else
+    	{
+    		$id = $this->getIdClientByResource($client);
+    		$lastSent = $this->clients[$id]->lastSent;
+    		$resource = $client;
+    	}
 
-		$this->clients[$id]->lastSent = Timer::militime();
-		@socket_write($resource, $data, strlen($data));
+    	$this->clients[$id]->lastSent = Timer::militime();
+        @socket_write($resource, $data, strlen($data));
 	}
 
 
@@ -547,10 +548,10 @@ class Server extends EventDispatcher
 	 * @param string $data
 	 * @return void
 	 */
-	public function sendBroadcast($idSocket, $data)
+    public function sendBroadcast($idSocket, $data)
 	{
-		foreach ($this->sockets[$idSocket]->clients as $idclient => $client)
-			$this->send($idclient, $data);
+    	foreach ($this->sockets[$idSocket]->clients as $idclient => $client)
+            $this->send($idclient, $data);
 	}
 
 
@@ -563,13 +564,13 @@ class Server extends EventDispatcher
 	 */
 	public function getIdClientsByIp($ip, $idSocket=NULL)
 	{
-		$ids = array();
-		$array = ($idSocket == NULL) ? $this->clients : $this->sockets[$idSocket]->clients;
-		foreach ($array as $idClient => $value)
-			if ($this->clients[$idClient]->ip == $ip)
-				$ids[] = $idClient;
-			
-		return $ids;
+	    $ids = array();
+	    $array = ($idSocket == NULL) ? $this->clients : $this->sockets[$idSocket]->clients;
+	    foreach ($array as $idClient => $value)
+	        if ($this->clients[$idClient]->ip() == $ip)
+	            $ids[] = $idClient;
+            
+        return $ids;
 	}
 
 
@@ -581,7 +582,7 @@ class Server extends EventDispatcher
 	 */
 	public function getIdSocketByResource($resource)
 	{
-		return $this->getIdByResource($resource, $this->sockets);
+	    return $this->getIdByResource($resource, $this->sockets);
 	}
 	
 	
@@ -593,7 +594,7 @@ class Server extends EventDispatcher
 	 */
 	public function getIdClientByResource($resource)
 	{
-		return $this->getIdByResource($resource, $this->clients);
+        return $this->getIdByResource($resource, $this->clients);
 	}
 
 
@@ -606,17 +607,17 @@ class Server extends EventDispatcher
 	 */
 	protected function getIdByResource($resource, $array)
 	{
-		$id = 0;
-		foreach ($array as $key => $item)
-		{
-			if ($item->resource == $resource)
-			{
-				$id = $key;
-				break;
-			}
-		}
-			
-		return $id;
+	    $id = 0;
+	    foreach ($array as $key => $item)
+	    {
+	        if ($item->resource() == $resource)
+	        {
+                $id = $key;
+                break;
+	        }
+	    }
+            
+        return $id;
 	}
 
 
@@ -630,44 +631,44 @@ class Server extends EventDispatcher
 	 */
 	protected function possibleNewClientByIP($ip, $idSocket)
 	{
-		$possible = true;
-		if ($ip!=NULL && $this->sockets[$idSocket]->maxIpRepeat != NULL)
-		{
-			$idClients = $this->getIdClientsByIp($ip, $idSocket);
-			if (count($idClients) >= $this->sockets[$idSocket]->maxIpRepeat)
-			{
-				$this->dispatchEvent(new Event(Event::SERVER_WARNING, (object) array(
-					'idSocket' => $idSocket,
-					'idClient' => NULL,
-					'ip' => $ip,
-					'resourceClient' => NULL,
-					'code' => 13
-				)));
-				$possible = false;
-			}
-		}
+	    $possible = true;
+	    if ($ip!=NULL && $this->sockets[$idSocket]->maxIpRepeat != NULL)
+	    {
+	        $idClients = $this->getIdClientsByIp($ip, $idSocket);
+            if (count($idClients) >= $this->sockets[$idSocket]->maxIpRepeat)
+    	    {
+        	    $this->dispatchEvent(new Event(Event::SERVER_WARNING, (object) array(
+                    'idSocket' => $idSocket,
+                    'idClient' => NULL,
+                    'ip' => $ip,
+                    'resourceClient' => NULL,
+                    'code' => 13
+                )));
+        	    $possible = false;
+    	    }
+	    }
 
-		if ($possible)
-		{
-			foreach ($this->bans as $array)
-			{
-				if ($array[0] == $ip)
-				{
-					$this->dispatchEvent(new Event(Event::SERVER_WARNING, (object) array(
-						'idSocket' => NULL,
-						'idClient' => NULL,
-						'ip' => $ip,
-						'resourceClient' => NULL,
-						'code' => 14
-					)));
-					$possible = false;
-					break;
-				}
-			}
-		}
-		
-			
-		return $possible;
+	    if ($possible)
+	    {
+	        foreach ($this->bans as $array)
+	        {
+    	        if ($array[0] == $ip)
+    	        {
+    	            $this->dispatchEvent(new Event(Event::SERVER_WARNING, (object) array(
+                        'idSocket' => NULL,
+                        'idClient' => NULL,
+                        'ip' => $ip,
+                        'resourceClient' => NULL,
+                    	'code' => 14
+                    )));
+    	            $possible = false;
+    	            break;
+    	        }
+	        }
+	    }
+	    
+            
+        return $possible;
 	}
 
 
@@ -679,21 +680,21 @@ class Server extends EventDispatcher
 	 */
 	protected function possibleNewClientByMax($idSocket)
 	{
-		$possible = true;
-		if ($this->sockets[$idSocket]->maxClients!=NULL && (count($this->sockets[$idSocket]->clients)+1) > $this->sockets[$idSocket]->maxClients)
-		{
-			$this->dispatchEvent(new Event(Event::SERVER_WARNING, (object) array(
-				'idSocket' => $idSocket,
-				'idClient' => NULL,
-				'ip' => NULL,
-				'resourceClient' => NULL,
-				'code' => 12
-			)));
-			$possible = false;
-		}
-		
-			
-		return $possible;
+	    $possible = true;
+	    if ($this->sockets[$idSocket]->maxClients!=NULL && (count($this->sockets[$idSocket]->clients)+1) > $this->sockets[$idSocket]->maxClients)
+        {
+            $this->dispatchEvent(new Event(Event::SERVER_WARNING, (object) array(
+                'idSocket' => $idSocket,
+                'idClient' => NULL,
+                'ip' => NULL,
+            	'resourceClient' => NULL,
+            	'code' => 12
+            )));
+            $possible = false;
+        }
+	    
+            
+        return $possible;
 	}
 	
 	
@@ -709,22 +710,22 @@ class Server extends EventDispatcher
 	NOT WORK
 	private function readSocketForDataLength($resource, $max)
 	{
-		$offset = 0;
-		$socketData = '';
+	    $offset = 0;
+	    $socketData = '';
 	   
-		while ($offset < $max)
-		{
-			if (($data = socket_read ($resource, $max-$offset, PHP_BINARY_READ)) === false)
-				return false;
-		   
-			$dataLen = strlen ($data);
-			$offset += $dataLen;
-			$socketData .= $data;
-		   
-			if ($dataLen == 0) { break; }
-		}
+	    while ($offset < $max)
+	    {
+	        if (($data = socket_read ($resource, $max-$offset, PHP_BINARY_READ)) === false)
+	            return false;
+	       
+	        $dataLen = strlen ($data);
+	        $offset += $dataLen;
+	        $socketData .= $data;
+	       
+	        if ($dataLen == 0) { break; }
+	    }
 	
-		return $socketData;
+	    return $socketData;
 	}*/
 
 }

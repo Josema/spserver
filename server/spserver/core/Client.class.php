@@ -11,34 +11,32 @@
 
 namespace spserver\core;
 
-use spserver\util\Encapsulation;
 
-
-class Client extends Encapsulation
+class Client
 {
 
 
-	//////////////////
-	//	PROPERTIES  //
-	//////////////////
+    /////////////////
+    //	VARIABLES  //
+    /////////////////
 
-	/**
+    /**
 	 * The resource of client
 	 * @var resource
 	 */
-	protected $resource;
-	
-	/**
+	protected $reource;
+    
+    /**
 	 * The id of the client
 	 * @var int
 	 */
-	protected $id;
-	
-	/**
+    protected $id;
+    
+    /**
 	 * The id of the sockets listener on the core
 	 * @var int
 	 */
-	protected $idSocket;
+    protected $idSocket;
 	
 	/**
 	 * The ip of conection client
@@ -50,24 +48,25 @@ class Client extends Encapsulation
 	 * The time() of the his last acction. To know timeout for disconnect
 	 * @var int
 	 */
-	protected  $timeout;
-
-	/**
-	 * The time in milisecond of the last sent to client
-	 * @var int
-	 */
-	protected $lastSent = 0;
+	public $timeout;
 	
 	/**
 	 * The array with ids group
 	 * @var Array
 	 */
 	public $groups = array();
+	
+
+	/**
+	 * The time in milisecond of the last sent to client
+	 * @var int
+	 */
+	public $lastSent = 0;
 
 
 	///////////////
-	//	METHODS  //
-	///////////////
+    //	METHODS  //
+    ///////////////
 
 	/**
 	 * Create instance of data Client
@@ -80,22 +79,53 @@ class Client extends Encapsulation
 	 */
 	public function __construct($resource, $id, $idSocket, $ip=NULL)
 	{
-		//Encapsulation
-		$this->addGet('resource');
-		$this->addGet('id');
-		$this->addGet('idSocket');
-		$this->addGet('ip');
-		$this->addGet('timeout');
-		$this->addSet('timeout');
-		$this->addGet('lastSent');
-		$this->addSet('lastSent');
+        $this->resource = $resource;
+	    $this->id = $id;
+        $this->idSocket = $idSocket;
+        $this->ip = $ip;
+	}
+	
+	
+	/**
+	 * The master socket
+	 * @return resource
+	 */
+    public function resource()
+	{
+	    return $this->resource;
+	}	
 
-		
-		
-		$this->resource = $resource;
-		$this->id = $id;
-		$this->idSocket = $idSocket;
-		$this->ip = $ip;
+
+	
+	/**
+	 * Id socket client
+	 * @return int
+	 */
+    public function id()
+	{
+	    return $this->id;
+	}
+	
+
+	
+	/**
+	 * Id master socket
+	 * @return int
+	 */
+    public function idSocket()
+	{
+	    return $this->idSocket;
+	}
+	
+	
+	
+	/**
+	 * Ip of client connected
+	 * @return string
+	 */
+    public function ip()
+	{
+	    return $this->ip;
 	}
 	
 	
@@ -106,9 +136,9 @@ class Client extends Encapsulation
 	 * @param int $idGroup
 	 * @return Boolean
 	 */
-	public function isInGroup($idGroup)
+    public function isInGroup($idGroup)
 	{
-		return array_key_exists($idGroup, $this->groups);
+	    return array_key_exists($idGroup, $this->groups);
 	}
 }
 ?>
