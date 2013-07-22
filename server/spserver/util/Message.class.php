@@ -152,9 +152,8 @@ class Message
 			//Converting to JSON
 			if ($instruccion{3} == '1')
 			{
-				$_message = $message;
-				$message = json_decode($message);
-	            if (json_last_error() !== JSON_ERROR_NONE)
+				$_message = json_decode($message);
+	            if (json_last_error() == JSON_ERROR_NONE)
 	            	$message = $_message;
 	            else
 	            	throw new Exception("Ocurred a json decode error: " . json_last_error());
@@ -174,7 +173,7 @@ class Message
 		{
 			$message = new stdClass();
 			$message->error = true;
-			$message->msg = '#'.$e->getCode().' - '.$e->getMessage() . ' ('.$e->getFile().' Line:' . $e->getLine() . ')';
+			$message->msg = '#'.$e->getCode().': '.$e->getMessage() . ' ('.$e->getFile().' Line:' . $e->getLine() . ')';
 		}
 
 		return $message;
