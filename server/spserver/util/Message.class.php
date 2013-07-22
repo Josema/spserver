@@ -158,11 +158,6 @@ class Message
 	            else
 	            	throw new Exception("Ocurred a json decode error: " . json_last_error());
 			}
-			
-			//Object to Array
-			if ($toArray)
-				if (!($message = @get_object_vars($message)))
-					throw new Exception("Not possible convert to Array");
 	
 	
 			unset($_message);
@@ -175,6 +170,11 @@ class Message
 			$message->error = true;
 			$message->msg = '#'.$e->getCode().': '.$e->getMessage() . ' ('.$e->getFile().' Line:' . $e->getLine() . ')';
 		}
+
+		//Object to Array
+		if ($toArray)
+			if (!($message = @get_object_vars($message)))
+				throw new Exception("Not possible convert to Array");
 
 		return $message;
 	}
