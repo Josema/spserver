@@ -11,6 +11,9 @@
 
 namespace spserver\util;
 
+use Exception;
+use stdClass;
+
 
 class Message
 {
@@ -123,44 +126,56 @@ class Message
 	
 	private static function unwrapMessage($message, $aes=NULL, $toArray=false)
 	{
-		$instruccion = str_pad(decbin(ord(substr($message,-1))), 4, '0', STR_PAD_LEFT);
-		$message = substr($message,0,-1);
-		#echo($instruccion);
-
-		//Decrypting
-		if ($aes != NULL && $instruccion{0} == '1')
-			$message = $aes->decrypt($message);
-		
+		try {
+			$instruccion = str_pad(decbin(ord(substr($message,-1))), 4, '0', STR_PAD_LEFT);
+			$message = substr($message,0,-1);
+			#echo($instruccion);
+	
+			//Decrypting
+			if ($aes != NULL && $instruccion{0} == '1')
+				if (!($message = @$aes->decrypt($message)))
+					throw new Exception("Not possible Decrypting the message");
 			
-		//Base64decoding
-		if ($instruccion{1} == '1')
-			$message = base64_decode($message);
-
-
-		//Uncompresing
-		if ($instruccion{2} == '1')
-			$message = gzinflate($message);
-
-
-		//Converting to JSON
-		if ($instruccion{3} == '1')
-		{
-			$_message = $message;
-			$message = json_decode($message);
-            if (json_last_error() !== JSON_ERROR_NONE)
-            	$message = $_message;
-
-            
+				
+			//Base64decoding
+			if ($instruccion{1} == '1')
+				if (!($message = @base64_decode($message)))
+					throw new Exception("Not possible base64decoding the message");
+	
+	
+			//Uncompresing
+			if ($instruccion{2} == '1')
+				if (!($message = @gzinflate($message)))
+					throw new Exception("Not possible uncompress the message");
+	
+	
+			//Converting to JSON
+			if ($instruccion{3} == '1')
+			{
+				$_message = $message;
+				$message = json_decode($message);
+	            if (json_last_error() !== JSON_ERROR_NONE)
+	            	$message = $_message;
+	            else
+	            	throw new Exception("Ocurred a json decode error: " . json_last_error());
+			}
+			
+			//Object to Array
+			if ($toArray)
+				if (!($message = @get_object_vars($message)))
+					throw new Exception("Not possible convert to Array");
+	
+	
+			unset($_message);
+			unset($instruccion);
+			unset($aes);
 		}
-		
-		//Object to Array
-		if ($toArray)
-			$message = get_object_vars($message);
-
-
-		unset($_message);
-		unset($instruccion);
-		unset($aes);
+		catch (Exception $e)
+		{
+			$message = new stdClass();
+			$message->error = true;
+			$message->msg = '#'.$e->getCode().' - '.$e->getMessage() . ' ('.$e->getFile().' Line:' . $e->getLine() . ')';
+		}
 
 		return $message;
 	}
