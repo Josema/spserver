@@ -10,4 +10,4 @@ It is a set of classes to create a advanced servers sockets in PHP. Perfect to c
 
 #### Diagram of classes  ####
 
-![Alt text](http://www.gliffy.com/go/publish/image/2848034/L.png "Optional title")
+[[http://www.gliffy.com/go/publish/image/2848034/L.png|{{http://www.gliffy.com/go/publish/image/2848034/L.png}}]]
