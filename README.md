@@ -11,4 +11,5 @@ It is a set of classes to create a advanced servers sockets in PHP. Perfect to c
 #### Diagram of classes  ####
 
 
-[[http://example.com/|{{http://www.gliffy.com/go/publish/image/2848034/L.png}}]]
+
+![Diagram](http://www.gliffy.com/go/publish/image/2848034/L.png)
