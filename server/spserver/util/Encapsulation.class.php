@@ -117,15 +117,18 @@ class TestEncapsulation extends Encapsulation
 		//$this->addSet('c');
 	}
 	
-	protected function getB($n)
-	{
-		return $this->b+1; //or return $this->{$n}+1;
-	}
 	
 	protected function setA($value, $n)
 	{
 		$this->a = ($value+1); //or $this->{$n} = ($value+1);
 	}
+
+
+	protected function getB($n)
+	{
+		return $this->b+1; //or return $this->{$n}+1;
+	}
+
 }
 
 $obj = new TestEncapsulation;

@@ -120,7 +120,7 @@ class Socket extends Encapsulation
 		$this->addGet('address');
 		$this->addGet('port');
 		$this->addGet('maxClients');
-		$this->addGet('maxClients');
+		$this->addSet('maxClients');
 		$this->addGet('maxIpRepeat');
 		$this->addSet('maxIpRepeat');
 		$this->addGet('maxBuffer');
