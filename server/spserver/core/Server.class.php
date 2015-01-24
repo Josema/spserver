@@ -196,9 +196,9 @@ class Server extends EventDispatcher
 
 
 			// socket_select para el bucle y queda a la espera de recibir algun dato nuevo en los resources pasados por parametros
-			// una vez que reciba algo continuará el script y el array $listening que se pasó por parametro contendra unicamente los 
+			// una vez que reciba algo continuarï¿½ el script y el array $listening que se pasï¿½ por parametro contendra unicamente los 
 			// resources que hayan sufrido cambios. Esta funcion bloquea el bucle pero una vez pasado el tiempo establecido por TIME_STOP_SELECT
-			// hará que continue el bucle de igual forma aunque no hayan actualizaciones en los $listeners.
+			// harï¿½ que continue el bucle de igual forma aunque no hayan actualizaciones en los $listeners.
 			@socket_select($listening, $write = NULL, $except = NULL, 0, ($this->bucleTimeLimit*1000));
 
 			//Recorremos todos los resources actualizados por socket_select
@@ -558,7 +558,7 @@ class Server extends EventDispatcher
 	 * Return an array with id located
 	 *  
 	 * @param string $ip
-	 * @param ìnt $idSocket
+	 * @param ï¿½nt $idSocket
 	 * @return array
 	 */
 	public function getIdClientsByIp($ip, $idSocket=NULL)
