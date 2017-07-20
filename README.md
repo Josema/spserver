@@ -12,4 +12,4 @@ It is a set of classes to create a advanced servers sockets in PHP. Perfect to c
 
 
 
-![Diagram](http://www.gliffy.com/go/publish/image/2848034/L.png)
+![Diagram](https://raw.githubusercontent.com/Josema/spserver/master/diagram.png)
