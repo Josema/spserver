@@ -1,4 +1,4 @@
-spserver v1.0 (BETA)
+spserver v1.0 (ABANDONED)
 ====================
 
 Josema Gonzalez (a.k.a. EnZo)
@@ -6,7 +6,7 @@ Josema Gonzalez (a.k.a. EnZo)
 
 #### What is  ####
 
-It is a set of classes to create a advanced servers sockets in PHP. Perfect to create apps that need communication in real time. Like chats or games. spserver have a good performance for multiplayer games.
+Set of classes written in PHP to make real time APPs via Sockets.
 
 #### Diagram of classes  ####
 
